@@ -260,8 +260,9 @@ export const handler = async (event) => {
     if (S3_TRANSFORMED_IMAGE_BUCKET) {
         startTime = performance.now();
         try {
-            // Cache key: base64url(url) + '/' + operations
-            const cacheKey = encodedUrl + '/' + operationsPrefix;
+            // Cache key: proxy/base64url(url) + '/' + operations
+            // Must include 'proxy/' prefix to match CloudFront request path
+            const cacheKey = 'proxy/' + encodedUrl + '/' + operationsPrefix;
 
             // Encode metadata values to be header-safe (only ASCII printable chars allowed)
             const safeUrl = Buffer.from(imageUrl).toString('base64');
@@ -280,18 +281,16 @@ export const handler = async (event) => {
             await s3Client.send(putImageCommand);
             timingLog = timingLog + ',img-upload;dur=' + parseInt(performance.now() - startTime);
 
-            // Only redirect if image is too big, otherwise return directly
+            // Always redirect to let CloudFront serve the cached image
             // Subsequent requests will be served from S3 via CloudFront cache
-            if (imageTooBig) {
-                return {
-                    statusCode: 307,
-                    headers: {
-                        'Location': '/proxy/' + encodedUrl + '/' + operationsPrefix,
-                        'Cache-Control': 'no-store',
-                        'Server-Timing': timingLog
-                    }
-                };
-            }
+            return {
+                statusCode: 307,
+                headers: {
+                    'Location': '/proxy/' + encodedUrl + '/' + operationsPrefix,
+                    'Cache-Control': 'no-store',
+                    'Server-Timing': timingLog
+                }
+            };
         } catch (error) {
             logError('Could not upload transformed image to S3', error);
             // Fall through to return image directly if S3 upload failed
