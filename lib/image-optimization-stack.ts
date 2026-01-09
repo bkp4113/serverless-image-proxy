@@ -160,7 +160,7 @@ export class ImageOptimizationStack extends Stack {
     var imageDeliveryCacheBehaviorConfig: ImageDeliveryCacheBehaviorConfig = {
       origin: imageOrigin,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      compress: false,
+      compress: true,
       cachePolicy: new cloudfront.CachePolicy(this, `ImageCachePolicy${this.node.addr}`, {
         defaultTtl: Duration.hours(24),
         maxTtl: Duration.days(365),
