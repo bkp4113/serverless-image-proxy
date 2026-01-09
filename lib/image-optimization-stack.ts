@@ -49,6 +49,9 @@ export class ImageOptimizationStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // Add cost tracking tag for AWS AppManager
+    Tags.of(this).add('AppManagerCFNStackKey', 'ImageOptimization');
+
     // Change stack parameters based on provided context
     STORE_TRANSFORMED_IMAGES = this.node.tryGetContext('STORE_TRANSFORMED_IMAGES') || STORE_TRANSFORMED_IMAGES;
     S3_TRANSFORMED_IMAGE_EXPIRATION_DURATION = this.node.tryGetContext('S3_TRANSFORMED_IMAGE_EXPIRATION_DURATION') || S3_TRANSFORMED_IMAGE_EXPIRATION_DURATION;
